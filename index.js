@@ -27,7 +27,7 @@ let persons = [
     }
   ]
     app.use(cors())
-    // app.use(express.static('build'))
+    app.use(express.static('build'))
     app.get('/', (request, response)=>{
       response.send('<h1>Hello world</h1>')
     })
@@ -91,7 +91,7 @@ let persons = [
       response.status(204).end()
     })
 
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 const id = generateId()
     app.listen(PORT,()=>{
       console.log(`Server express running on port: ${PORT}.`);
