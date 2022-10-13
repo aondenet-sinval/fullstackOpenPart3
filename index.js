@@ -2,37 +2,18 @@ const express = require('express')
 const app = express()
 // const morgan = require('morgan')
 const cors = require('cors')
-
-
-let persons = [
-    {
-      "name": "Arto Hellas",
-      "number": "040-123456",
-      "id": 1
-    },
-    {
-      "name": "Ada Lovelace",
-      "number": "39-44-5323523",
-      "id": 2
-    },
-    {
-      "name": "Dan Abramov",
-      "number": "12-43-234345",
-      "id": 3
-    },
-    {
-      "name": "Mary Poppendieck",
-      "number": "39-23-6423122",
-      "id": 4
-    }
-  ]
+const mongoose = require('mongoose')
+const Person = require('./models/person')
     app.use(cors())
     app.use(express.static('build'))
     app.get('/', (request, response)=>{
       response.send('<h1>Hello world</h1>')
     })
     app.get('/api/persons', (request, response)=>{
-      response.json(persons)
+      Person.find({}).then(persons => {
+        response.json(persons)
+      })
+
     })
     app.get('/info', (request, response)=>{
       const total = persons.length
@@ -50,10 +31,6 @@ let persons = [
       console.log(person);
     })
     //post
-    const generateId = () => {
-      const id = Math.floor(Math.random() * 40)
-      return id
-    }
     app.use(express.json())
     // morgan.token('valueName', function(req, res) {
     //   return '{"name": "' + req.body.name + '" "number": "'
@@ -69,18 +46,15 @@ let persons = [
         })
       }
       //Verificando se o usuário já existe
-      const namePerson = persons.find(p => p.name === body.name)
-      if (namePerson) {
-        return response.status(400).json({
-          error: 'name já cadastrado'
-        })
-      }
-      const person ={
+
+      const person = new Person({
         name: body.name,
         number: body.number,
-        id: generateId()
-      }
-      persons = persons.concat(person)
+      })
+      person.save().then(result => {
+        console.log(`add ${person.name} number ${person.number} to phonebook!`)
+      })
+      // persons = persons.concat(person)
       // console.log('body ', person);
       response.json(person)
     })
@@ -92,7 +66,7 @@ let persons = [
     })
 
 const PORT = process.env.PORT || 3001
-const id = generateId()
+// const id = generateId()
     app.listen(PORT,()=>{
       console.log(`Server express running on port: ${PORT}.`);
     })
