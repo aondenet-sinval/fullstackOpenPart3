@@ -3,6 +3,7 @@ const app = express()
 const morgan = require('morgan')
 const cors = require('cors')
 const mongoose = require('mongoose')
+
 const Person = require('./models/person')
     app.use(cors())
     app.use(express.static('build'))
@@ -36,8 +37,12 @@ const Person = require('./models/person')
     const errorHandler = (error, request, response, next ) => {
       // console.error(error.message)
       if(error.name === 'CastError') {
-        return response.status(400).send ({ error: 'malformatted id' })
+        return response.status(400).send({ error: 'malformatted id' })
       }
+      if(error.name === 'ValidationError') {
+        return response.status(400).send({ error: `${error}` })
+      }
+
       next(error)
     }
     app.use(errorHandler)
@@ -62,17 +67,20 @@ const Person = require('./models/person')
           number: body.number,
         })
         person.save().then(result => {
-          console.log(`add ${person.name} number ${person.number} to phonebook!`)
+          // console.log(`add ${person.name} number ${person.number} to phonebook!`)
+          response.json(person)
         })
-        response.json(person)
+        .catch(error => next(error))
+
 })
     //put
-  app.put('/api/persons/:id', (request, response) =>{
+  app.put('/api/persons/:id', (request, response, next) =>{
     const body = request.body
     const  person = {
       number: body.number,
     }
-    Person.findByIdAndUpdate(request.params.id, person, { new: true })
+    // validator: runValidators: true, context: 'query'
+    Person.findByIdAndUpdate(request.params.id, person, { new: true, runValidators: true, context: 'query' })
     .then(updatedPerson => {
       response.json(updatedPerson)
       })
